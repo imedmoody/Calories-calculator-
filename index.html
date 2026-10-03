@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalorieCraft - Precision Calorie & Macro Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            bg: '#0f172a',
+                            card: '#1e293b',
+                            accent: '#38bdf8',
+                            green: '#22c55e',
+                            amber: '#f59e0b',
+                            purple: '#a855f7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome & Chart.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col justify-between antialiased">
+
+    <!-- Header Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-emerald-400 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-sky-500/20">
+                    <i class="fa-solid fa-calculator text-lg"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight text-white">Calorie<span class="text-sky-400">Craft</span></span>
+                    <span class="hidden sm:inline-block text-[10px] bg-slate-800 text-sky-400 font-bold px-2 py-0.5 rounded-full ml-2 border border-slate-700">PRO AI ENGINE</span>
+                </div>
+            </div>
+            
+            <button onclick="resetCalculator()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-3 py-2 rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate-right"></i> Reset Defaults
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-grow space-y-8">
+
+        <!-- Intro Header -->
+        <div class="text-center space-y-2 max-w-2xl mx-auto">
+            <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-white">Precision Calorie & Macro Engine</h1>
+            <p class="text-slate-400 text-sm sm:text-base">Calculate your daily energy expenditure, custom macronutrient targets, and meal-by-meal caloric breakdown.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- LEFT PANEL: INPUT FORM (5 cols) -->
+            <div class="lg:col-span-5 bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-5 shadow-xl">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <i class="fa-solid fa-sliders text-sky-400"></i> Your Parameters
+                </h2>
+
+                <!-- Biological Sex -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Biological Sex</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" id="sex-male" onclick="setSex('male')" class="py-2.5 rounded-xl font-bold text-sm border-2 border-sky-500 bg-sky-500/10 text-sky-400 transition">Male</button>
+                        <button type="button" id="sex-female" onclick="setSex('female')" class="py-2.5 rounded-xl font-bold text-sm border-2 border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 transition">Female</button>
+                    </div>
+                </div>
+
+                <!-- Metrics Inputs -->
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Age</label>
+                        <input type="number" id="input-age" value="25" min="10" max="100" oninput="calculateAll()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-semibold focus:outline-none focus:border-sky-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Height (cm)</label>
+                        <input type="number" id="input-height" value="175" min="100" max="230" oninput="calculateAll()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-semibold focus:outline-none focus:border-sky-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Weight (kg)</label>
+                        <input type="number" id="input-weight" value="75" min="30" max="250" step="0.1" oninput="calculateAll()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-semibold focus:outline-none focus:border-sky-500 text-sm">
+                    </div>
+                </div>
+
+                <!-- Activity Level -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Activity Level</label>
+                    <select id="input-activity" onchange="calculateAll()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-semibold focus:outline-none focus:border-sky-500 text-sm">
+                        <option value="1.2">Sedentary (Desk job, little/no exercise)</option>
+                        <option value="1.375" selected>Lightly Active (Exercise 1-3 days/wk)</option>
+                        <option value="1.55">Moderately Active (Exercise 3-5 days/wk)</option>
+                        <option value="1.725">Very Active (Heavy exercise 6-7 days/wk)</option>
+                        <option value="1.9">Athlete (2x per day / Physical job)</option>
+                    </select>
+                </div>
+
+                <!-- Primary Goal -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Primary Goal</label>
+                    <select id="input-goal" onchange="calculateAll()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-semibold focus:outline-none focus:border-sky-500 text-sm">
+                        <option value="-500">Weight Loss (-500 kcal deficit)</option>
+                        <option value="-250">Mild Weight Loss (-250 kcal deficit)</option>
+                        <option value="0" selected>Maintain Weight (TDEE baseline)</option>
+                        <option value="250">Lean Muscle Gain (+250 kcal surplus)</option>
+                        <option value="500">Aggressive Bulk (+500 kcal surplus)</option>
+                    </select>
+                </div>
+
+                <!-- Macro Strategy Presets -->
+                <div class="space-y-1.5 pt-2">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Macronutrient Preset</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="setMacroPreset('balanced')" class="py-2 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300">Balanced</button>
+                        <button type="button" onclick="setMacroPreset('high_protein')" class="py-2 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300">High Protein</button>
+                        <button type="button" onclick="setMacroPreset('low_carb')" class="py-2 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300">Keto / Low Carb</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: RESULTS & BREAKDOWN (7 cols) -->
+            <div class="lg:col-span-7 space-y-6">
+
+                <!-- Summary Stat Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">BMR (Baseline)</span>
+                        <div class="text-2xl font-black text-white"><span id="res-bmr">1,725</span> <span class="text-xs font-normal text-slate-400">kcal</span></div>
+                        <p class="text-[11px] text-slate-500">Basal metabolic rate</p>
+                    </div>
+
+                    <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Maintenance TDEE</span>
+                        <div class="text-2xl font-black text-slate-300"><span id="res-tdee">2,371</span> <span class="text-xs font-normal text-slate-400">kcal</span></div>
+                        <p class="text-[11px] text-slate-500">Total daily expenditure</p>
+                    </div>
+
+                    <div class="bg-slate-900 p-5 rounded-2xl border border-sky-500/30 bg-gradient-to-b from-sky-500/5 to-transparent space-y-1">
+                        <span class="text-xs font-bold uppercase tracking-wider text-sky-400">Daily Target Goal</span>
+                        <div class="text-3xl font-black text-sky-400"><span id="res-target">2,371</span> <span class="text-xs font-normal text-slate-400">kcal</span></div>
+                        <p class="text-[11px] text-slate-400" id="res-goal-label">Weight Maintenance</p>
+                    </div>
+                </div>
+
+                <!-- Macros Breakdown with Chart -->
+                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-6">
+                    <h3 class="text-base font-bold text-white flex items-center justify-between border-b border-slate-800 pb-3">
+                        <span><i class="fa-solid fa-chart-pie text-emerald-400 mr-2"></i> Macronutrient Split</span>
+                        <span class="text-xs text-slate-400 font-normal">Auto-balanced to total calories</span>
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <!-- Chart -->
+                        <div class="h-48 relative flex items-center justify-center">
+                            <canvas id="macroChart"></canvas>
+                        </div>
+
+                        <!-- Macro Details Grid -->
+                        <div class="space-y-3">
+                            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex justify-between items-center">
+                                <div class="flex items-center space-x-2.5">
+                                    <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+                                    <div>
+                                        <div class="text-xs font-bold text-white">Protein</div>
+                                        <div class="text-[10px] text-slate-500">4 kcal / gram</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span id="macro-protein-g" class="text-lg font-black text-emerald-400">178</span> <span class="text-xs text-slate-400">g</span>
+                                    <div id="macro-protein-pct" class="text-[10px] text-slate-500">30%</div>
+                                </div>
+                            </div>
+
+                            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex justify-between items-center">
+                                <div class="flex items-center space-x-2.5">
+                                    <div class="w-3 h-3 rounded-full bg-sky-400"></div>
+                                    <div>
+                                        <div class="text-xs font-bold text-white">Carbohydrates</div>
+                                        <div class="text-[10px] text-slate-500">4 kcal / gram</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span id="macro-carbs-g" class="text-lg font-black text-sky-400">237</span> <span class="text-xs text-slate-400">g</span>
+                                    <div id="macro-carbs-pct" class="text-[10px] text-slate-500">40%</div>
+                                </div>
+                            </div>
+
+                            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex justify-between items-center">
+                                <div class="flex items-center space-x-2.5">
+                                    <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                                    <div>
+                                        <div class="text-xs font-bold text-white">Fats</div>
+                                        <div class="text-[10px] text-slate-500">9 kcal / gram</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span id="macro-fats-g" class="text-lg font-black text-amber-400">79</span> <span class="text-xs text-slate-400">g</span>
+                                    <div id="macro-fats-pct" class="text-[10px] text-slate-500">30%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Meal Calorie Distribution Breakdown -->
+                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+                    <h3 class="text-base font-bold text-white flex items-center justify-between border-b border-slate-800 pb-3">
+                        <span><i class="fa-solid fa-utensils text-amber-400 mr-2"></i> Recommended Meal Distribution</span>
+                        <span class="text-xs text-slate-400 font-normal">Daily target spread</span>
+                    </h3>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-center space-y-1">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase">Breakfast (25%)</span>
+                            <div class="text-xl font-extrabold text-white"><span id="meal-breakfast">593</span> <span class="text-xs font-normal text-slate-500">kcal</span></div>
+                        </div>
+                        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-center space-y-1">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase">Lunch (35%)</span>
+                            <div class="text-xl font-extrabold text-white"><span id="meal-lunch">830</span> <span class="text-xs font-normal text-slate-500">kcal</span></div>
+                        </div>
+                        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-center space-y-1">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase">Dinner (30%)</span>
+                            <div class="text-xl font-extrabold text-white"><span id="meal-dinner">711</span> <span class="text-xs font-normal text-slate-500">kcal</span></div>
+                        </div>
+                        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-center space-y-1">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase">Snacks (10%)</span>
+                            <div class="text-xl font-extrabold text-white"><span id="meal-snack">237</span> <span class="text-xs font-normal text-slate-500">kcal</span></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500">
+        <p>© 2026 CalorieCraft Engine. Built with Tailwind CSS & Chart.js.</p>
+    </footer>
+
+    <!-- App Logic Script -->
+    <script>
+        let currentSex = 'male';
+        let currentMacroRatio = { p: 0.30, c: 0.40, f: 0.30 }; // Balanced default
+        let chartInstance = null;
+
+        function setSex(sex) {
+            currentSex = sex;
+            const btnMale = document.getElementById('sex-male');
+            const btnFemale = document.getElementById('sex-female');
+
+            if (sex === 'male') {
+                btnMale.className = "py-2.5 rounded-xl font-bold text-sm border-2 border-sky-500 bg-sky-500/10 text-sky-400 transition";
+                btnFemale.className = "py-2.5 rounded-xl font-bold text-sm border-2 border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 transition";
+            } else {
+                btnFemale.className = "py-2.5 rounded-xl font-bold text-sm border-2 border-sky-500 bg-sky-500/10 text-sky-400 transition";
+                btnMale.className = "py-2.5 rounded-xl font-bold text-sm border-2 border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 transition";
+            }
+            calculateAll();
+        }
+
+        function setMacroPreset(preset) {
+            if (preset === 'balanced') {
+                currentMacroRatio = { p: 0.30, c: 0.40, f: 0.30 };
+            } else if (preset === 'high_protein') {
+                currentMacroRatio = { p: 0.40, c: 0.35, f: 0.25 };
+            } else if (preset === 'low_carb') {
+                currentMacroRatio = { p: 0.35, c: 0.15, f: 0.50 };
+            }
+            calculateAll();
+        }
+
+        function calculateAll() {
+            const age = parseFloat(document.getElementById('input-age').value) || 25;
+            const height = parseFloat(document.getElementById('input-height').value) || 175;
+            const weight = parseFloat(document.getElementById('input-weight').value) || 75;
+            const activity = parseFloat(document.getElementById('input-activity').value) || 1.375;
+            const goalAdjustment = parseFloat(document.getElementById('input-goal').value) || 0;
+
+            // Mifflin-St Jeor Equation
+            let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+            if (currentSex === 'male') {
+                bmr += 5;
+            } else {
+                bmr -= 161;
+            }
+
+            const tdee = bmr * activity;
+            const targetCalories = Math.max(1200, Math.round(tdee + goalAdjustment));
+
+            // Render BMR & TDEE
+            document.getElementById('res-bmr').innerText = Math.round(bmr).toLocaleString();
+            document.getElementById('res-tdee').innerText = Math.round(tdee).toLocaleString();
+            document.getElementById('res-target').innerText = targetCalories.toLocaleString();
+
+            // Label text update
+            const goalSelect = document.getElementById('input-goal');
+            document.getElementById('res-goal-label').innerText = goalSelect.options[goalSelect.selectedIndex].text;
+
+            // Calculate Grams
+            const pro            // Calculate Grams
+            const proteinGrams = Math.round((targetCalories * currentMacroRatio.p) / 4);
+            const carbsGrams = Math.round((targetCalories * currentMacroRatio.c) / 4);
+            const fatsGrams = Math.round((targetCalories * currentMacroRatio.f) / 9);
+
+            document.getElementById('macro-protein-g').innerText = proteinGrams;
+            document.getElementById('macro-protein-pct').innerText = `${Math.round(currentMacroRatio.p * 100)}%`;
+
+            document.getElementById('macro-carbs-g').innerText = carbsGrams;
+            document.getElementById('macro-carbs-pct').innerText = `${Math.round(currentMacroRatio.c * 100)}%`;
+
+            document.getElementById('macro-fats-g').innerText = fatsGrams;
+            document.getElementById('macro-fats-pct').innerText = `${Math.round(currentMacroRatio.f * 100)}%`;
+
+            // Meal Distribution
+            document.getElementById('meal-breakfast').innerText = Math.round(targetCalories * 0.25).toLocaleString();
+            document.getElementById('meal-lunch').innerText = Math.round(targetCalories * 0.35).toLocaleString();
+            document.getElementById('meal-dinner').innerText = Math.round(targetCalories * 0.30).toLocaleString();
+            document.getElementById('meal-snack').innerText = Math.round(targetCalories * 0.10).toLocaleString();
+
+            updateChart(proteinGrams, carbsGrams, fatsGrams);
+        }
+
+        function updateChart(protein, carbs, fats) {
+            const ctx = document.getElementById('macroChart').getContext('2d');
+
+            if (chartInstance) {
+                chartInstance.data.datasets[0].data = [protein * 4, carbs * 4, fats * 9];
+                chartInstance.update();
+                return;
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Protein (kcal)', 'Carbohydrates (kcal)', 'Fats (kcal)'],
+                    datasets: [{
+                        data: [protein * 4, carbs * 4, fats * 9],
+                        backgroundColor: ['#22c55e', '#38bdf8', '#f59e0b'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    cutout: '72%'
+                }
+            });
+        }
+
+        function resetCalculator() {
+            setSex('male');
+            document.getElementById('input-age').value = 25;
+            document.getElementById('input-height').value = 175;
+            document.getElementById('input-weight').value = 75;
+            document.getElementById('input-activity').value = "1.375";
+            document.getElementById('input-goal').value = "0";
+            setMacroPreset('balanced');
+        }
+
+        // Initial launch calculation
+        window.addEventListener('DOMContentLoaded', () => {
+            calculateAll();
+        });
+    </script>
+</body>
+</html>
